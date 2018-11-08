@@ -64,6 +64,10 @@ assembly_info:
   assembly_file_version: "{version}"
   assembly_informational_version: "{version}"
 
+# environment variables
+environment:
+  OCTOPUS_PACKAGE_NUGET : true  
+
 #---------------------------------#
 #       build configuration       #
 #---------------------------------#
@@ -81,11 +85,10 @@ configuration:
 build:
   parallel: true                  # enable MSBuild parallel builds
   project: IS4.sln      # path to Visual Studio solution or project
-  publish_wap: true               # package Web Application Projects (WAP) for Web Deploy
-  publish_wap_xcopy: true         # package Web Application Projects (WAP) for XCopy deployment
+  publish_wap_octopus: true # automatic package creation for octopus
   
-  # MSBuild verbosity level
-  verbosity: minimal
+  # MSBuild verbosity level (quiet|minimal|normal|detailed)
+  verbosity: normal
 
 # scripts to run before build
 before_build:
@@ -95,19 +98,20 @@ before_build:
   - cmd: dotnet restore --verbosity m
 
 build_script:
-  # output will be in ./src/bin/debug/netcoreapp1.1/publish
-  - cmd: dotnet publish ./src/IS4.Admin/IS4.Admin.csproj -o ./dist/admin/
-  - cmd: dotnet publish ./src/IS4.STS.Identity/IS4.STS.Identity.csproj -o ./dist/identity
+#  - cmd: dotnet publish ./src/IS4.Admin/IS4.Admin.csproj -o ./dist/admin/
+#  - cmd: dir ./dist/admin/
+#  - cmd: dotnet publish ./src/IS4.STS.Identity/IS4.STS.Identity.csproj -o ./dist/identity
+#  - cmd: dir ./dist/identity/
 
 after_build:
   # For once the build has completed
 artifacts:
- - path: '.\dist\admin'
-   name: IS4.Admin.WebSite
-   type: WebDeployPackage
+ - path: dist\admin
+   name: IS4.Admin
+   type: OctopusPackage
  - path: '.\dist\identity'
-   name: IS4.STS.Identity.WebSite
-   type: WebDeployPackage
+   name: IS4.STS.Identity
+   type: OctopusPackage
 
 test_script:
   # restore packages for our unit tests
