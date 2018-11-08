@@ -98,12 +98,7 @@ after_build:
   - cmd: octo pack --version=%APPVEYOR_BUILD_VERSION% --id=IS4.STS.Identity --basePath=./src/IS4.STS.Identity/dist --outFolder=./dist
 
 artifacts:
- - path: dist
-   name: IS4.Admin
-   type: OctopusPackage
- - path: dist
-   name: IS4.STS.Identity
-   type: OctopusPackage
+ - path: '**\*.nupkg' # find all NuGet packages recursively
 
 test_script:
   # restore packages for our unit tests
