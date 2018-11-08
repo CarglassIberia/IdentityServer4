@@ -56,13 +56,15 @@ cache:
   - '%LocalAppData%\NuGet\Cache'    # NuGet < v3
   - '%LocalAppData%\NuGet\v3-cache' # NuGet v3
 
-# enable patching of AssemblyInfo.* files
-assembly_info:
+# enable patching dotnet versions
+dotnet_csproj:
   patch: true
-  file: AssemblyInfo.*
-  assembly_version: "1.0.{build}"
-  assembly_file_version: "{version}"
-  assembly_informational_version: "{version}"
+  file: '**\*.csproj'
+  version: '{version}'
+  package_version: '{version}'
+  assembly_version: '{version}'
+  file_version: '{version}'
+  informational_version: '{version}'
 
 # environment variables
 environment:
@@ -80,16 +82,6 @@ platform:
 configuration: 
   - Release
 
-# Build settings, not to be confused with "before_build" and "after_build".
-# "project" is relative to the original build directory and not influenced by directory changes in "before_build".
-build:
-  parallel: true                  # enable MSBuild parallel builds
-  project: IS4.sln      # path to Visual Studio solution or project
-  publish_wap_octopus: true # automatic package creation for octopus
-  
-  # MSBuild verbosity level (quiet|minimal|normal|detailed)
-  verbosity: normal
-
 # scripts to run before build
 before_build:
   # Display .NET Core version
@@ -98,18 +90,18 @@ before_build:
   - cmd: dotnet restore --verbosity m
 
 build_script:
-#  - cmd: dotnet publish ./src/IS4.Admin/IS4.Admin.csproj -o ./dist/admin/
-#  - cmd: dir ./dist/admin/
-#  - cmd: dotnet publish ./src/IS4.STS.Identity/IS4.STS.Identity.csproj -o ./dist/identity
-#  - cmd: dir ./dist/identity/
+  - cmd: dotnet publish ./src/IS4.Admin/IS4.Admin.csproj -o ./dist
+  - cmd: dotnet publish ./src/IS4.STS.Identity/IS4.STS.Identity.csproj -o ./dist
 
 after_build:
-  # For once the build has completed
+  - cmd: octo pack --version=%APPVEYOR_BUILD_VERSION% --id=IS4.Admin --basePath=./src/IS4.Admin/dist --outFolder=./dist
+  - cmd: octo pack --version=%APPVEYOR_BUILD_VERSION% --id=IS4.STS.Identity --basePath=./src/IS4.STS.Identity/dist --outFolder=./dist
+
 artifacts:
- - path: dist\admin
+ - path: dist
    name: IS4.Admin
    type: OctopusPackage
- - path: '.\dist\identity'
+ - path: dist
    name: IS4.STS.Identity
    type: OctopusPackage
 
